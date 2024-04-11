@@ -14,22 +14,23 @@ in the function’s body and evaluated only when necessary.
 
 (*
 THUNK
-A thunk is a function of type ()-> T where T is the type of the body
-of the function. Thunks are used to delay evaluation, i.e., if an
-argument of a function is of thunk type, it is not evaluated until
-needed, in a call-by-name style. Thunks simulate CBN in a CBV language.
+A thunk is a function of type () -> T where T is the type of the function
+body. Thunks are used to delay evaluation, i.e., if an argument of a 
+function is of thunk type, we can delay its evaluation until needed, 
+in a call-by-name style. Thunks simulate CBN in a CBV language.
 *)
 
 (* the doubling function *)
 let double = fun x -> x + x
+let double2 = fun x -> x () + x ()
 
 (*
 Try the following expressions after loading this script with:
-    # use "lecture_21.ml"
-Suspend utop with "Ctrl z" if stuck in infinite loop.
+    # use "lecture_21.ml" ;;
 
-double (print_string "hi!!"; 4)   
-
+    # double (print_string "hi!!"; 4) ;;  
+    # double2  (fun () -> (print_string "hi!!"; 4)) ;;
+    
 -- if double (print_string “hi!!”; 4) is evaluated using call-by-value, 
 the argument will be evaluated once, hi!! will be printed ONCE and the 
 return value will be 8.
@@ -40,16 +41,15 @@ the argument will be copied to the body of the function, which will become:
 sum will be evaluated, hi!! will be printed TWICE and the return value will be 8.
 *)
 
-(* the polymorphic identity function *)
-let id = fun x -> x 
-(* the squaring function on integers *)
-let sq : int -> int = fun x -> x * x
-(* the always-diverging function on integers *)
-let rec myst : int -> int = fun x -> myst x 
-(* the polymorphic first-projection function *)
-let proj_1 = fun x y -> y ;;
-(* the polymorphic second-projection function *)
-let proj_2 = fun x y -> x ;;
+let id = fun x -> x    (* polymorphic identity function *) 
+
+let sq : int -> int = fun x -> x * x   (* squaring function on integers *)
+
+let rec myst : int -> int = fun x -> myst x   (* always-diverging function on integers *)
+
+let proj_1 = fun x y -> y ;;      (* the polymorphic first-projection function *)
+
+let proj_2 = fun x y -> x ;;     (* the polymorphic second-projection function *)
 
 (* 
 Try the following expressions after loading this script with:
@@ -66,7 +66,7 @@ proj_1 (myst 3) 10           -- diverges
 proj_1 (fun z -> myst 3) 10  -- int = 10 
 *)
 
-let foo () = print_endline "Argument evaluated.";;
+let foo () = print_endline "Argument evaluated!! Argument evaluated!!";;
 
 let cbv_fn f =          (* Note: f is a dummy argument *)
     print_endline "=> Not using the argument, evaluated anyway." ;;
@@ -77,5 +77,6 @@ let bar _ =
         cbv_fn (foo ());
     print_endline "CALL-BY-NAME:";
         cbn_fn (fun () -> foo ())     
-        (* evaluation of foo () is suspendent by wrapping it in a lambda *)
+        (* (fun () -> foo ()) is a thunk and evaluation of foo ()
+        is thus suspended by wrapping it in a lambda *)
       ;;
